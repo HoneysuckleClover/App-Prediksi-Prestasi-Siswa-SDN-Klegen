@@ -1,542 +1,185 @@
 import customtkinter as ctk
 from tkinter import messagebox
-import threading
+from PIL import Image # Dibutuhkan untuk memproses gambar/logo
 
 from database.koneksi import connect_db
 
-from pages.dashboard_admin import DashboardAdmin
-from pages.dashboard_guru import DashboardGuru
-from pages.dashboard_kepsek import DashboardKepsek
+from pages.register_page import RegisterPage
+from pages.admin.dashboard_admin import DashboardAdmin
+from pages.guru.dashboard_guru import DashboardGuru
+from pages.kepsek.dashboard_kepsek import DashboardKepsek
 
-
-# =========================================================
-# TEMA
-# =========================================================
-
-COLORS = {
-    "bg_dark": "#0F1117",
-    "bg_card": "#1A1D27",
-    "bg_input": "#252836",
-    "bg_input_hover": "#2E3247",
-    "accent": "#4F6EF7",
-    "accent_hover": "#6B85FF",
-    "accent_glow": "#3A52C4",
-    "text_primary": "#F0F2FF",
-    "text_secondary": "#8B92B8",
-    "text_muted": "#555B7A",
-    "border": "#2A2F47",
-    "border_focus": "#4F6EF7",
-    "success": "#22C55E",
-    "error": "#EF4444",
-    "divider": "#1E2235",
-}
-
-FONTS = {
-    "title": ("Segoe UI", 28, "bold"),
-    "subtitle": ("Segoe UI", 12),
-    "label": ("Segoe UI", 11, "bold"),
-    "body": ("Segoe UI", 11),
-    "small": ("Segoe UI", 10),
-    "btn": ("Segoe UI", 13, "bold"),
-}
-
-
-# =========================================================
-# MODERN ENTRY
-# =========================================================
-
-class ModernEntry(ctk.CTkFrame):
-
-    def __init__(
-        self,
-        master,
-        label: str,
-        placeholder: str,
-        icon: str = "○",
-        show: str = ""
-    ):
-
-        super().__init__(
-            master,
-            fg_color=COLORS["bg_input"],
-            corner_radius=12,
-            border_width=1,
-            border_color=COLORS["border"]
-        )
-
-        self.show_char = show
-
-        self.grid_columnconfigure(1, weight=1)
-
-        # ICON
-
-        self.lbl_icon = ctk.CTkLabel(
-            self,
-            text=icon,
-            font=("Segoe UI", 16),
-            text_color=COLORS["text_muted"],
-            width=36
-        )
-
-        self.lbl_icon.grid(
-            row=0,
-            column=0,
-            padx=(12, 0),
-            pady=14
-        )
-
-        # CONTAINER
-
-        mid = ctk.CTkFrame(
-            self,
-            fg_color="transparent"
-        )
-
-        mid.grid(
-            row=0,
-            column=1,
-            sticky="ew",
-            padx=(4, 0)
-        )
-
-        mid.grid_columnconfigure(0, weight=1)
-
-        # LABEL
-
-        self.lbl_float = ctk.CTkLabel(
-            mid,
-            text=label,
-            font=FONTS["small"],
-            text_color=COLORS["text_muted"],
-            anchor="w"
-        )
-
-        self.lbl_float.grid(
-            row=0,
-            column=0,
-            sticky="w"
-        )
-
-        # ENTRY
-
-        self.entry = ctk.CTkEntry(
-            mid,
-            placeholder_text=placeholder,
-            placeholder_text_color=COLORS["text_muted"],
-            fg_color="transparent",
-            border_width=0,
-            text_color=COLORS["text_primary"],
-            font=FONTS["body"],
-            show=show,
-            height=28
-        )
-
-        self.entry.grid(
-            row=1,
-            column=0,
-            sticky="ew",
-            pady=(0, 6)
-        )
-
-        # BIND
-
-        self.entry.bind("<FocusIn>", self._on_focus)
-        self.entry.bind("<FocusOut>", self._on_blur)
-
-        # TOGGLE PASSWORD
-
-        if show:
-
-            self.btn_toggle = ctk.CTkButton(
-                self,
-                text="●",
-                width=36,
-                height=36,
-                fg_color="transparent",
-                hover_color=COLORS["bg_input_hover"],
-                text_color=COLORS["text_muted"],
-                font=("Segoe UI", 12),
-                corner_radius=8,
-                command=self._toggle_show
-            )
-
-            self.btn_toggle.grid(
-                row=0,
-                column=2,
-                padx=(0, 8)
-            )
-
-            self._hidden = True
-
-    def _on_focus(self, event=None):
-
-        self.configure(
-            border_color=COLORS["border_focus"]
-        )
-
-        self.lbl_icon.configure(
-            text_color=COLORS["accent"]
-        )
-
-        self.lbl_float.configure(
-            text_color=COLORS["accent"]
-        )
-
-    def _on_blur(self, event=None):
-
-        self.configure(
-            border_color=COLORS["border"]
-        )
-
-        self.lbl_icon.configure(
-            text_color=COLORS["text_muted"]
-        )
-
-        self.lbl_float.configure(
-            text_color=COLORS["text_muted"]
-        )
-
-    def _toggle_show(self):
-
-        if self._hidden:
-
-            self.entry.configure(show="")
-            self.btn_toggle.configure(text="○")
-
-            self._hidden = False
-
-        else:
-
-            self.entry.configure(show=self.show_char)
-            self.btn_toggle.configure(text="●")
-
-            self._hidden = True
-
-    def get(self):
-
-        return self.entry.get()
-
-    def set_error(self, is_error=True):
-
-        color = COLORS["error"] if is_error else COLORS["border"]
-
-        self.configure(border_color=color)
-
-
-# =========================================================
-# LOGIN PAGE
-# =========================================================
 
 class LoginPage(ctk.CTk):
 
     def __init__(self):
         super().__init__()
 
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
-
-        self.title("Sistem Informasi Sekolah")
-
-        self.geometry("480x620")
+        self.title("Sistem Prediksi Prestasi Siswa - SDN Klegen")
+        self.geometry("450x620") # Ukuran disesuaikan agar compact dan padat (tidak lowong)
         self.resizable(False, False)
 
-        self.configure(
-            fg_color=COLORS["bg_dark"]
-        )
+        # ==========================
+        # BAGIAN GANTI IKON APLIKASI
+        # ==========================
+        try:
+            # Mengganti ikon window (.ico disarankan untuk Windows)
+            self.iconbitmap("assets/app_icon.ico")
+        except Exception as e:
+            print(f"Gagal memuat ikon aplikasi (.ico): {e}")
 
-        self.after(10, self._center_window)
+        # Mengatur background utama window agar senada dengan frame interior
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
+        self.configure(fg_color="#111827") # Dark background ala aplikasi modern (Tailwind Gray 900)
 
-        self._build_ui()
+        # Frame utama bertindak sebagai "Card Container"
+        frame = ctk.CTkFrame(self, fg_color="#1F2937", corner_radius=20, border_width=1, border_color="#374151")
+        frame.pack(expand=True, fill="both", padx=35, pady=35)
 
-        self.bind(
-            "<Return>",
-            lambda _: self.login()
-        )
+        # ==========================
+        # BAGIAN LOGO & HEADER
+        # ==========================
+        try:
+            # Load file logo dari folder assets
+            logo_image = ctk.CTkImage(
+                light_image=Image.open("assets/logo.png"),
+                dark_image=Image.open("assets/logo.png"),
+                size=(80, 75) # Dimensi square sempurna agar logo tidak gepeng
+            )
+            self.logo_label = ctk.CTkLabel(frame, image=logo_image, text="")
+            self.logo_label.pack(pady=(30, 10))
+        except Exception as e:
+            print(f"Gagal memuat logo dari folder assets: {e}")
 
-    # =====================================================
+        # Judul Instansi Utama
+        ctk.CTkLabel(
+            frame,
+            text="SDN KLEGEN",
+            font=("Segoe UI", 26, "bold"),
+            text_color="#60A5FA" # Biru modern konvensional
+        ).pack(pady=(0, 2))
 
-    def _center_window(self):
+        # Deskripsi atau Sub-judul Aplikasi
+        ctk.CTkLabel(
+            frame,
+            text="Sistem Prediksi Prestasi Siswa",
+            font=("Segoe UI", 12),
+            text_color="#9CA3AF" # Abu-abu soft agar tidak balapan dengan judul utama
+        ).pack(pady=(0, 25))
 
-        self.update_idletasks()
-
-        w = 480
-        h = 620
-
-        sw = self.winfo_screenwidth()
-        sh = self.winfo_screenheight()
-
-        x = (sw - w) // 2
-        y = (sh - h) // 2
-
-        self.geometry(f"{w}x{h}+{x}+{y}")
-
-    # =====================================================
-
-    def _build_ui(self):
-
-        self._draw_background()
-
-        # CARD
-
-        card = ctk.CTkFrame(
-            self,
-            width=400,
-            height=540,
-            fg_color=COLORS["bg_card"],
-            corner_radius=24,
+        # ==========================
+        # FIELD INPUT (USER & PASS)
+        # ==========================
+        
+        # Input Username
+        self.entry_username = ctk.CTkEntry(
+            frame,
+            width=280,
+            height=44,
+            corner_radius=10,
             border_width=1,
-            border_color=COLORS["border"]
+            border_color="#4B5563",
+            fg_color="#1F2937",
+            placeholder_text="Username",
+            placeholder_text_color="#6B7280",
+            font=("Segoe UI", 12)
         )
+        self.entry_username.pack(pady=8)
 
-        card.place(
-            relx=0.5,
-            rely=0.5,
-            anchor="center"
+        # Input Password
+        self.entry_password = ctk.CTkEntry(
+            frame,
+            width=280,
+            height=44,
+            corner_radius=10,
+            border_width=1,
+            border_color="#4B5563",
+            fg_color="#1F2937",
+            placeholder_text="Password",
+            placeholder_text_color="#6B7280",
+            show="*",
+            font=("Segoe UI", 12)
         )
+        self.entry_password.pack(pady=8)
 
-        card.pack_propagate(False)
+        # ==========================
+        # TOMBOL AKSI (ACTION BUTTONS)
+        # ==========================
 
-        self._build_header(card)
-        self._build_form(card)
-        self._build_footer(card)
-
-    # =====================================================
-
-    def _draw_background(self):
-
-        dot = ctk.CTkLabel(
-            self,
-            text="",
-            width=180,
-            height=180,
-            fg_color=COLORS["accent_glow"],
-            corner_radius=90
-        )
-
-        dot.place(x=-60, y=-60)
-
-        dot2 = ctk.CTkLabel(
-            self,
-            text="",
-            width=120,
-            height=120,
-            fg_color="#1A1040",
-            corner_radius=60
-        )
-
-        dot2.place(x=380, y=500)
-
-    # =====================================================
-
-    def _build_header(self, parent):
-
-        header = ctk.CTkFrame(
-            parent,
-            fg_color="transparent"
-        )
-
-        header.pack(
-            pady=(36, 28),
-            padx=32,
-            fill="x"
-        )
-
-        logo = ctk.CTkFrame(
-            header,
-            width=52,
-            height=52,
-            fg_color=COLORS["accent"],
-            corner_radius=16
-        )
-
-        logo.pack(anchor="center")
-        logo.pack_propagate(False)
-
-        ctk.CTkLabel(
-            logo,
-            text="✦",
-            font=("Segoe UI", 22, "bold"),
-            text_color="white"
-        ).place(
-            relx=0.5,
-            rely=0.5,
-            anchor="center"
-        )
-
-        ctk.CTkLabel(
-            header,
-            text="Selamat Datang",
-            font=FONTS["title"],
-            text_color=COLORS["text_primary"]
-        ).pack(
-            pady=(14, 4)
-        )
-
-        ctk.CTkLabel(
-            header,
-            text="Login Sistem Informasi Sekolah",
-            font=FONTS["subtitle"],
-            text_color=COLORS["text_secondary"]
-        ).pack()
-
-    # =====================================================
-
-    def _build_form(self, parent):
-
-        form = ctk.CTkFrame(
-            parent,
-            fg_color="transparent"
-        )
-
-        form.pack(
-            padx=32,
-            fill="x"
-        )
-
-        # USERNAME
-
-        self.field_username = ModernEntry(
-            form,
-            label="Username",
-            placeholder="Masukkan username",
-            icon="⊙"
-        )
-
-        self.field_username.pack(
-            fill="x",
-            pady=(0, 14)
-        )
-
-        # PASSWORD
-
-        self.field_password = ModernEntry(
-            form,
-            label="Password",
-            placeholder="Masukkan password",
-            icon="◈",
-            show="●"
-        )
-
-        self.field_password.pack(
-            fill="x",
-            pady=(0, 18)
-        )
-
-        # BUTTON LOGIN
-
-        self.btn_login = ctk.CTkButton(
-            form,
-            text="Masuk",
-            height=50,
-            font=FONTS["btn"],
-            corner_radius=12,
-            fg_color=COLORS["accent"],
-            hover_color=COLORS["accent_hover"],
+        # Tombol Login Utama (Solid Blue Accent)
+        ctk.CTkButton(
+            frame,
+            text="Masuk ke Akun",
+            width=280,
+            height=44,
+            corner_radius=10,
+            font=("Segoe UI", 13, "bold"),
+            fg_color="#2563EB",
+            hover_color="#1D4ED8",
             command=self.login
+        ).pack(pady=(25, 15))
+
+        # Pembatas Visual Garis Tipis (Divider)
+        divider = ctk.CTkFrame(frame, height=1, width=200, fg_color="#374151")
+        divider.pack(pady=10)
+
+        # BAGIAN REGISTER BARU: Teks biasa & Link digabung satu baris horizontal
+        register_container = ctk.CTkFrame(frame, fg_color="transparent")
+        register_container.pack(pady=(10, 25))
+
+        # 1. Teks Biasa (Kiri)
+        label_tanya = ctk.CTkLabel(
+            register_container,
+            text="Belum punya akun? ",
+            font=("Segoe UI", 12),
+            text_color="#9CA3AF"
         )
+        label_tanya.pack(side="left")
 
-        self.btn_login.pack(fill="x")
-
-    # =====================================================
-
-    def _build_footer(self, parent):
-
-        footer = ctk.CTkFrame(
-            parent,
-            fg_color="transparent"
+        # 2. Teks Link Aktif (Kanan)
+        self.link_register = ctk.CTkLabel(
+            register_container,
+            text="Daftar Sekarang",
+            font=("Segoe UI", 12, "underline"),
+            text_color="#10B981", # Warna hijau emerald murni
+            cursor="hand2"        # Mengubah kursor menjadi tangan menunjuk
         )
+        self.link_register.pack(side="left")
+        
+        # Binding klik mouse pada link
+        self.link_register.bind("<Button-1>", lambda event: self.buka_register())
 
-        footer.pack(
-            side="bottom",
-            pady=24,
-            padx=32,
-            fill="x"
-        )
+    # ==========================
+    # BUKA REGISTER
+    # ==========================
 
-        ctk.CTkFrame(
-            footer,
-            fg_color=COLORS["divider"],
-            height=1
-        ).pack(
-            fill="x",
-            pady=(0, 16)
-        )
+    def buka_register(self):
 
-        ctk.CTkLabel(
-            footer,
-            text="© 2025 Sistem Informasi Sekolah",
-            font=FONTS["small"],
-            text_color=COLORS["text_muted"]
-        ).pack()
+        self.destroy()
 
-    # =====================================================
+        app = RegisterPage()
+        app.mainloop()
 
-    def _set_loading(self, loading):
-
-        if loading:
-
-            self.btn_login.configure(
-                text="Memproses...",
-                state="disabled"
-            )
-
-        else:
-
-            self.btn_login.configure(
-                text="Masuk",
-                state="normal"
-            )
-
-    # =====================================================
+    # ==========================
+    # LOGIN
+    # ==========================
 
     def login(self):
 
-        username = self.field_username.get().strip()
-        password = self.field_password.get()
+        username = self.entry_username.get()
+        password = self.entry_password.get()
 
-        if not username:
-
+        if not username or not password:
             messagebox.showwarning(
                 "Peringatan",
-                "Username tidak boleh kosong"
+                "Username dan Password wajib diisi!"
             )
-
-            return
-
-        if not password:
-
-            messagebox.showwarning(
-                "Peringatan",
-                "Password tidak boleh kosong"
-            )
-
-            return
-
-        self._set_loading(True)
-
-        threading.Thread(
-            target=self._do_login,
-            args=(username, password),
-            daemon=True
-        ).start()
-
-    # =====================================================
-
-    def _do_login(self, username, password):
-
-        conn = connect_db()
-
-        if not conn:
-
-            self.after(
-                0,
-                lambda: self._db_error()
-            )
-
             return
 
         try:
 
+            conn = connect_db()
             cursor = conn.cursor()
 
             query = """
@@ -546,134 +189,51 @@ class LoginPage(ctk.CTk):
                 AND password=%s
             """
 
-            cursor.execute(
-                query,
-                (username, password)
-            )
+            cursor.execute(query, (username, password))
 
             user = cursor.fetchone()
-
-        except Exception as e:
-
-            self.after(
-                0,
-                lambda: self._query_error(str(e))
-            )
-
-            return
-
-        finally:
 
             cursor.close()
             conn.close()
 
-        if user:
+            if user:
 
-            id_user, nama, role = user
+                role = user[2]
 
-            self.after(
-                0,
-                lambda: self._login_success(
-                    id_user,
-                    nama,
-                    role
+                self.destroy()
+
+                if role == "admin":
+
+                    app = DashboardAdmin()
+                    app.mainloop()
+
+                elif role == "guru":
+
+                    app = DashboardGuru()
+                    app.mainloop()
+
+                elif role == "kepala_sekolah":
+
+                    app = DashboardKepsek()
+                    app.mainloop()
+
+                else:
+
+                    messagebox.showerror(
+                        "Error",
+                        "Role tidak dikenali!"
+                    )
+
+            else:
+
+                messagebox.showerror(
+                    "Login Gagal",
+                    "Username atau Password salah!"
                 )
-            )
 
-        else:
-
-            self.after(
-                0,
-                self._login_failed
-            )
-
-    # =====================================================
-
-    def _login_success(self, id_user, nama, role):
-
-        self._set_loading(False)
-
-        dashboard_map = {
-            "admin": DashboardAdmin,
-            "guru": DashboardGuru,
-            "kepala_sekolah": DashboardKepsek
-        }
-
-        DashboardClass = dashboard_map.get(role)
-
-        if DashboardClass:
-
-            messagebox.showinfo(
-                "Berhasil",
-                f"Selamat datang, {nama}"
-            )
-
-            self.after(
-                300,
-                lambda: self._open_dashboard(
-                    DashboardClass,
-                    id_user,
-                    nama
-                )
-            )
-
-        else:
+        except Exception as e:
 
             messagebox.showerror(
-                "Error",
-                f"Role '{role}' tidak dikenali"
+                "Error Database",
+                str(e)
             )
-
-    # =====================================================
-
-    def _login_failed(self):
-
-        self._set_loading(False)
-
-        messagebox.showerror(
-            "Login Gagal",
-            "Username atau password salah"
-        )
-
-        self.field_password.entry.delete(0, "end")
-
-    # =====================================================
-
-    def _db_error(self):
-
-        self._set_loading(False)
-
-        messagebox.showerror(
-            "Database",
-            "Koneksi database gagal"
-        )
-
-    # =====================================================
-
-    def _query_error(self, detail):
-
-        self._set_loading(False)
-
-        messagebox.showerror(
-            "Error",
-            detail
-        )
-
-    # =====================================================
-
-    def _open_dashboard(self, DashboardClass, id_user, nama):
-
-        self.destroy()
-
-        app = DashboardClass(id_user, nama)
-        app.mainloop()
-
-
-# =========================================================
-# MAIN
-# =========================================================
-
-if __name__ == "__main__":
-
-    app = LoginPage()
-    app.mainloop()
