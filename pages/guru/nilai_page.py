@@ -1,526 +1,815 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
-from database.koneksi import connect_db
+from database.koneksi_sqlite import connect_db
 
+class NilaiPage(ctk.CTkFrame):
 
-class NilaiPage(ctk.CTk):
+    def __init__(self, parent):
+        super().__init__(parent)
 
-    def __init__(self):
-        super().__init__()
+        self.configure(fg_color="#0F172A")
 
-        # =========================
-        # WINDOW
-        # =========================
+        self.id_nilai = None
+        self.data_siswa = {}
 
-        self.title("Data Nilai Siswa")
-        self.geometry("1250x720")
-        self.state("zoomed")
-
-        # =========================
-        # TITLE
-        # =========================
-
-        title = ctk.CTkLabel(
-            self,
-            text="MANAJEMEN DATA NILAI",
-            font=("Arial", 32, "bold")
-        )
-
-        title.pack(pady=20)
-
-        # =========================
-        # FRAME FORM
-        # =========================
-
-        form_frame = ctk.CTkFrame(
-            self,
-            width=350,
-            height=650,
-            corner_radius=20
-        )
-
-        form_frame.place(relx=0.02, rely=0.12)
-
-        # =========================
-        # FORM INPUT
-        # =========================
-
-        # Pilih Siswa
-        ctk.CTkLabel(
-            form_frame,
-            text="Pilih Siswa",
-            font=("Arial", 18)
-        ).place(x=25, y=20)
-
-        self.combo_siswa = ctk.CTkComboBox(
-            form_frame,
-            values=[],
-            width=280,
-            height=40
-        )
-
-        self.combo_siswa.place(x=25, y=55)
-
-        # Semester
-        ctk.CTkLabel(
-            form_frame,
-            text="Semester",
-            font=("Arial", 18)
-        ).place(x=25, y=130)
-
-        self.entry_semester = ctk.CTkEntry(
-            form_frame,
-            width=280,
-            height=40
-        )
-
-        self.entry_semester.place(x=25, y=165)
-
-        # Nilai
-        ctk.CTkLabel(
-            form_frame,
-            text="Rata-rata Nilai",
-            font=("Arial", 18)
-        ).place(x=25, y=240)
-
-        self.entry_nilai = ctk.CTkEntry(
-            form_frame,
-            width=280,
-            height=40
-        )
-
-        self.entry_nilai.place(x=25, y=275)
-
-        # =========================
-        # BUTTON
-        # =========================
-
-        button_frame = ctk.CTkFrame(
-            form_frame,
-            fg_color="transparent"
-        )
-
-        button_frame.place(x=20, y=360)
-
-        # Tambah
-        self.btn_tambah = ctk.CTkButton(
-            button_frame,
-            text="Tambah",
-            width=85,
-            height=40,
-            command=self.tambah_nilai
-        )
-
-        self.btn_tambah.grid(
-            row=0,
-            column=0,
-            padx=5
-        )
-
-        # Update
-        self.btn_update = ctk.CTkButton(
-            button_frame,
-            text="Update",
-            width=85,
-            height=40,
-            fg_color="orange",
-            hover_color="#cc8400",
-            command=self.update_nilai
-        )
-
-        self.btn_update.grid(
-            row=0,
-            column=1,
-            padx=5
-        )
-
-        # Hapus
-        self.btn_hapus = ctk.CTkButton(
-            button_frame,
-            text="Hapus",
-            width=85,
-            height=40,
-            fg_color="red",
-            hover_color="darkred",
-            command=self.hapus_nilai
-        )
-
-        self.btn_hapus.grid(
-            row=0,
-            column=2,
-            padx=5
-        )
-
-        # =========================
+        # ==================================
         # STYLE TABLE
-        # =========================
+        # ==================================
 
         style = ttk.Style()
+        style.theme_use("clam")
 
-        style.theme_use("default")
-
+        # TREEVIEW BODY
         style.configure(
             "Treeview",
-            rowheight=35,
-            font=("Arial", 11)
+            background="#1E293B",
+            foreground="white",
+            fieldbackground="#1E293B",
+            rowheight=34,
+            borderwidth=0,
+            relief="flat",
+            font=("Segoe UI", 10)
         )
 
+        # TREEVIEW HEADER
         style.configure(
             "Treeview.Heading",
-            font=("Arial", 11, "bold")
+            background="#334155",
+            foreground="white",
+            borderwidth=0,
+            relief="flat",
+            font=("Segoe UI", 10, "bold")
         )
 
-        # =========================
-        # FRAME TABLE
-        # =========================
+        style.map(
+            "Treeview.Heading",
+            background=[("active", "#475569")]
+        )
+
+        # ROW SELECTED
+        style.map(
+            "Treeview",
+            background=[("selected", "#2563EB")],
+            foreground=[("selected", "white")]
+        )
+
+        # SCROLLBAR
+        style.configure(
+            "Vertical.TScrollbar",
+            background="#334155",
+            troughcolor="#1E293B",
+            bordercolor="#1E293B",
+            arrowcolor="white"
+        )
+
+        # ==================================
+        # HEADER
+        # ==================================
+
+        header_frame = ctk.CTkFrame(
+            self,
+            fg_color="transparent"
+        )
+        header_frame.pack(fill="x", padx=20, pady=(20, 10))
+
+        ctk.CTkLabel(
+            header_frame,
+            text="📘 DATA NILAI SISWA",
+            font=("Segoe UI", 28, "bold"),
+            text_color="white"
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            header_frame,
+            text="Kelola data nilai akademik siswa",
+            font=("Segoe UI", 13),
+            text_color="#94A3B8"
+        ).pack(anchor="w")
+
+        # ==================================
+        # MAIN CONTENT - SCROLLABLE
+        # ==================================
+
+        main_scroll = ctk.CTkScrollableFrame(
+            self,
+            fg_color="transparent"
+        )
+        main_scroll.pack(fill="both", expand=True, padx=20, pady=10)
+
+        # ==================================
+        # FORM INPUT
+        # ==================================
+
+        form_frame = ctk.CTkFrame(
+            main_scroll,
+            fg_color="#1E293B",
+            corner_radius=15,
+            border_width=1,
+            border_color="#334155"
+        )
+        form_frame.pack(fill="x", pady=(0, 15))
+        
+        for i in range(4):
+            form_frame.grid_columnconfigure(i, weight=1)
+
+        # Row 0: Nama Siswa & Semester
+        ctk.CTkLabel(
+            form_frame,
+            text="👤 Nama Siswa",
+            text_color="white",
+            font=("Segoe UI", 12, "bold")
+        ).grid(row=0, column=0, padx=15, pady=(15, 10), sticky="w")
+
+        self.combo_siswa = ctk.CTkOptionMenu(
+            form_frame,
+            values=["Pilih Siswa"],
+            fg_color="#334155",
+            button_color="#1E293B",
+            button_hover_color="#475569",
+            text_color="white",
+            dropdown_fg_color="#1E293B",
+            dropdown_text_color="white",
+            dropdown_hover_color="#334155",
+            width=220,
+            height=35,
+            corner_radius=8
+        )
+        self.combo_siswa.grid(row=0, column=1, padx=10, pady=(15, 10), sticky="w")
+
+        ctk.CTkLabel(
+            form_frame,
+            text="📅 Semester",
+            text_color="white",
+            font=("Segoe UI", 12, "bold")
+        ).grid(row=0, column=2, padx=15, pady=(15, 10), sticky="w")
+
+        self.combo_semester = ctk.CTkOptionMenu(
+            form_frame,
+            values=["Ganjil", "Genap"],
+            fg_color="#334155",
+            button_color="#1E293B",
+            button_hover_color="#475569",
+            text_color="white",
+            dropdown_fg_color="#1E293B",
+            dropdown_text_color="white",
+            dropdown_hover_color="#334155",
+            width=180,
+            height=35,
+            corner_radius=8
+        )
+        self.combo_semester.grid(row=0, column=3, padx=10, pady=(15, 10), sticky="w")
+
+        # Separator
+        ctk.CTkFrame(
+            form_frame,
+            fg_color="#334155",
+            height=2
+        ).grid(row=1, column=0, columnspan=4, sticky="ew", padx=20, pady=5)
+
+        # Header Nilai
+        ctk.CTkLabel(
+            form_frame,
+            text="📚 Nilai Mata Pelajaran",
+            text_color="#60A5FA",
+            font=("Segoe UI", 14, "bold")
+        ).grid(row=2, column=0, columnspan=4, padx=15, pady=(10, 5), sticky="w")
+
+        # ==================================
+        # ENTRY NILAI
+        # ==================================
+
+        entry_style = {
+            "width": 160,
+            "height": 35,
+            "fg_color": "#334155",
+            "border_color": "#475569",
+            "border_width": 2,
+            "text_color": "white",
+            "corner_radius": 8,
+            "font": ("Segoe UI", 11)
+        }
+
+        self.entry_b_indo = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_b_jawa = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_b_inggris = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_matematika = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_ipas = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_pjok = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_pancasila = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_btq = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_pai = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_seni_rupa = ctk.CTkEntry(form_frame, **entry_style)
+        self.entry_seni_musik = ctk.CTkEntry(form_frame, **entry_style)
+
+        mapel = [
+            ("📖 B. Indonesia", self.entry_b_indo),
+            ("📕 B. Jawa", self.entry_b_jawa),
+            ("📗 B. Inggris", self.entry_b_inggris),
+            ("📘 Matematika", self.entry_matematika),
+            ("📙 IPAS", self.entry_ipas),
+            ("🏃 PJOK", self.entry_pjok),
+            ("⚖️ Pend. Pancasila", self.entry_pancasila),
+            ("🕌 BTQ", self.entry_btq),
+            ("🕌 PAI", self.entry_pai),
+            ("🎨 Seni Rupa", self.entry_seni_rupa),
+            ("🎵 Seni Musik", self.entry_seni_musik)
+        ]
+
+        row = 3
+
+        for nama, entry in mapel:
+            ctk.CTkLabel(
+                form_frame,
+                text=nama,
+                text_color="#E2E8F0",
+                font=("Segoe UI", 11)
+            ).grid(
+                row=row,
+                column=0,
+                padx=15,
+                pady=5,
+                sticky="w"
+            )
+
+            entry.grid(
+                row=row,
+                column=1,
+                padx=10,
+                pady=5,
+                sticky="w"
+            )
+
+            entry.bind(
+                "<KeyRelease>",
+                lambda e: self.hitung_rata_rata()
+            )
+
+            row += 1
+
+        # ==================================
+        # RATA-RATA
+        # ==================================
+
+        ctk.CTkFrame(
+            form_frame,
+            fg_color="#334155",
+            height=2
+        ).grid(row=row, column=0, columnspan=4, sticky="ew", padx=20, pady=10)
+        
+        row += 1
+
+        ctk.CTkLabel(
+            form_frame,
+            text="⭐ Rata-rata",
+            text_color="#FACC15",
+            font=("Segoe UI", 13, "bold")
+        ).grid(row=row, column=0, padx=15, pady=15, sticky="w")
+
+        self.entry_rata = ctk.CTkEntry(
+            form_frame,
+            width=160,
+            height=40,
+            fg_color="#1E293B",
+            border_color="#FACC15",
+            border_width=2,
+            text_color="#FACC15",
+            font=("Segoe UI", 14, "bold"),
+            corner_radius=8
+        )
+        self.entry_rata.grid(row=row, column=1, padx=10, pady=15, sticky="w")
+        self.entry_rata.configure(state="readonly")
+
+        # ==================================
+        # TEMPLATE FRAME
+        # ==================================
+
+        template_frame = ctk.CTkFrame(
+            main_scroll,
+            fg_color="transparent"
+        )
+        template_frame.pack(fill="x", pady=(0, 15))
+
+        ctk.CTkButton(
+            template_frame,
+            text="📥 Download Template Nilai",
+            width=200,
+            height=38,
+            fg_color="#8B5CF6",
+            hover_color="#7C3AED",
+            corner_radius=8,
+            font=("Segoe UI", 12, "bold"),
+            command=self.download_template
+        ).pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            template_frame,
+            text="📤 Import Data Nilai",
+            width=200,
+            height=38,
+            fg_color="#10B981",
+            hover_color="#059669",
+            corner_radius=8,
+            font=("Segoe UI", 12, "bold"),
+            command=self.import_data
+        ).pack(side="left", padx=5)
+        
+        # ==================================
+        # BUTTON
+        # ==================================
+
+        btn_frame = ctk.CTkFrame(
+            main_scroll,
+            fg_color="transparent"
+        )
+        btn_frame.pack(fill="x", pady=(0, 15))
+
+        button_style = {
+            "height": 42,
+            "corner_radius": 10,
+            "font": ("Segoe UI", 12, "bold"),
+            "border_width": 0
+        }
+
+        ctk.CTkButton(
+            btn_frame,
+            text="➕ Tambah",
+            fg_color="#22C55E",
+            hover_color="#16A34A",
+            command=self.tambah_data,
+            **button_style
+        ).pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            btn_frame,
+            text="✏️ Edit",
+            fg_color="#3B82F6",
+            hover_color="#2563EB",
+            command=self.edit_data,
+            **button_style
+        ).pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            btn_frame,
+            text="🗑️ Hapus",
+            fg_color="#EF4444",
+            hover_color="#DC2626",
+            command=self.hapus_data,
+            **button_style
+        ).pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            btn_frame,
+            text="🔄 Reset",
+            fg_color="#F59E0B",
+            hover_color="#D97706",
+            command=self.reset_form,
+            **button_style
+        ).pack(side="left", padx=5)
+
+        # ==================================
+        # SEARCH
+        # ==================================
+
+        search_frame = ctk.CTkFrame(
+            main_scroll,
+            fg_color="#1E293B",
+            corner_radius=12,
+            border_width=1,
+            border_color="#334155"
+        )
+        search_frame.pack(fill="x", pady=(0, 10))
+
+        self.entry_search = ctk.CTkEntry(
+            search_frame,
+            placeholder_text="🔍 Cari Nama Siswa...",
+            width=300,
+            height=38,
+            fg_color="#334155",
+            border_color="#475569",
+            border_width=2,
+            text_color="white",
+            corner_radius=8,
+            font=("Segoe UI", 11)
+        )
+        self.entry_search.pack(side="left", padx=15, pady=10)
+
+        ctk.CTkButton(
+            search_frame,
+            text="🔍 Cari",
+            width=120,
+            height=38,
+            fg_color="#2563EB",
+            hover_color="#1D4ED8",
+            corner_radius=8,
+            font=("Segoe UI", 11, "bold"),
+            command=self.cari_data
+        ).pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            search_frame,
+            text="🔄 Refresh",
+            width=120,
+            height=38,
+            fg_color="#475569",
+            hover_color="#334155",
+            corner_radius=8,
+            font=("Segoe UI", 11, "bold"),
+            command=self.load_data
+        ).pack(side="left", padx=5)
+
+        # ==================================
+        # TABLE
+        # ==================================
 
         table_frame = ctk.CTkFrame(
-            self,
-            width=900,
-            height=650,
-            corner_radius=20
+            main_scroll,
+            fg_color="#1E293B",
+            corner_radius=15,
+            border_width=1,
+            border_color="#334155"
+        )
+        table_frame.pack(
+            fill="both",
+            expand=True,
+            pady=(0, 10)
         )
 
-        table_frame.place(relx=0.30, rely=0.12)
-
-        # =========================
-        # TABLE
-        # =========================
+        columns = (
+            "id",
+            "nama_siswa",
+            "semester",
+            "rata_nilai"
+        )
 
         self.table = ttk.Treeview(
             table_frame,
-            columns=(
-                "id",
-                "nama",
-                "semester",
-                "nilai"
-            ),
-            show="headings"
+            columns=columns,
+            show="headings",
+            height=12
         )
 
-        # Heading
+        # HEADING
         self.table.heading("id", text="ID")
-        self.table.heading("nama", text="Nama Siswa")
-        self.table.heading("semester", text="Semester")
-        self.table.heading("nilai", text="Rata-rata")
+        self.table.heading("nama_siswa", text="👤 Nama Siswa")
+        self.table.heading("semester", text="📅 Semester")
+        self.table.heading("rata_nilai", text="⭐ Rata-rata")
 
-        # Column Width
+        # COLUMN
         self.table.column("id", width=70, anchor="center")
-        self.table.column("nama", width=300)
+        self.table.column("nama_siswa", width=350)
         self.table.column("semester", width=150, anchor="center")
-        self.table.column("nilai", width=150, anchor="center")
+        self.table.column("rata_nilai", width=150, anchor="center")
 
-        self.table.place(
-            x=10,
-            y=10,
-            width=860,
-            height=620
+        # ZEBRA ROW
+        self.table.tag_configure(
+            "oddrow",
+            background="#1E293B"
+        )
+        self.table.tag_configure(
+            "evenrow",
+            background="#273549"
         )
 
-        # =========================
         # SCROLLBAR
-        # =========================
-
-        scroll_y = ttk.Scrollbar(
+        scrollbar = ttk.Scrollbar(
             table_frame,
             orient="vertical",
             command=self.table.yview
         )
+        self.table.configure(yscrollcommand=scrollbar.set)
 
-        self.table.configure(
-            yscrollcommand=scroll_y.set
+        self.table.pack(
+            side="left",
+            fill="both",
+            expand=True,
+            padx=(10, 0),
+            pady=10
         )
-
-        scroll_y.place(
-            x=870,
-            y=10,
-            height=620
+        scrollbar.pack(
+            side="right",
+            fill="y",
+            padx=(0, 10),
+            pady=10
         )
-
-        # =========================
-        # EVENT TABLE
-        # =========================
 
         self.table.bind(
             "<<TreeviewSelect>>",
             self.pilih_data
         )
 
-        self.selected_id = None
-
         self.load_siswa()
         self.load_data()
+        
+    # ==================================
+    # DOWNLOAD & IMPORT TEMPLATE
+    # ==================================
 
-    # =========================
+    def download_template(self):
+        from utils.import_export import ImportExportData
+        importer = ImportExportData(self)
+        importer.download_template("nilai")
+
+    def import_data(self):
+        from utils.import_export import ImportExportData
+        importer = ImportExportData(self)
+        importer.import_data("nilai")
+
+    # ==================================
+    # HITUNG RATA-RATA
+    # ==================================
+
+    def hitung_rata_rata(self):
+        try:
+            nilai = [
+                float(self.entry_b_indo.get() or 0),
+                float(self.entry_b_jawa.get() or 0),
+                float(self.entry_b_inggris.get() or 0),
+                float(self.entry_matematika.get() or 0),
+                float(self.entry_ipas.get() or 0),
+                float(self.entry_pjok.get() or 0),
+                float(self.entry_pancasila.get() or 0),
+                float(self.entry_btq.get() or 0),
+                float(self.entry_pai.get() or 0),
+                float(self.entry_seni_rupa.get() or 0),
+                float(self.entry_seni_musik.get() or 0)
+            ]
+            rata = round(sum(nilai) / 11, 2)
+            self.entry_rata.configure(state="normal")
+            self.entry_rata.delete(0, "end")
+            self.entry_rata.insert(0, str(rata))
+            self.entry_rata.configure(state="readonly")
+        except:
+            pass
+
+    # ==================================
     # LOAD SISWA
-    # =========================
+    # ==================================
 
     def load_siswa(self):
-
         conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id_siswa, nama_siswa FROM siswa ORDER BY nama_siswa"
+        )
+        data = cursor.fetchall()
+        nama_siswa = []
+        self.data_siswa = {}
+        for row in data:
+            self.data_siswa[row[1]] = row[0]
+            nama_siswa.append(row[1])
+        self.combo_siswa.configure(values=nama_siswa)
+        conn.close()
 
-        if conn:
-
-            cursor = conn.cursor()
-
-            query = """
-                SELECT id_siswa, nama_siswa
-                FROM siswa
-            """
-
-            cursor.execute(query)
-
-            rows = cursor.fetchall()
-
-            self.siswa_map = {}
-
-            siswa_list = []
-
-            for row in rows:
-
-                siswa_id = row[0]
-                nama = row[1]
-
-                siswa_list.append(nama)
-
-                self.siswa_map[nama] = siswa_id
-
-            self.combo_siswa.configure(
-                values=siswa_list
-            )
-
-            cursor.close()
-            conn.close()
-
-    # =========================
+    # ==================================
     # LOAD DATA
-    # =========================
+    # ==================================
 
     def load_data(self):
-
-        for item in self.table.get_children():
-            self.table.delete(item)
-
-        conn = connect_db()
-
-        if conn:
-
-            cursor = conn.cursor()
-
-            query = """
-                SELECT
-                    nilai.id_nilai,
-                    siswa.nama_siswa,
-                    nilai.semester,
-                    nilai.rata_nilai
-                FROM nilai
-                JOIN siswa
-                ON nilai.id_siswa = siswa.id_siswa
-            """
-
-            cursor.execute(query)
-
-            rows = cursor.fetchall()
-
-            for row in rows:
-                self.table.insert(
-                    "",
-                    "end",
-                    values=row
-                )
-
-            cursor.close()
-            conn.close()
-
-    # =========================
-    # TAMBAH DATA
-    # =========================
-
-    def tambah_nilai(self):
-
-        nama_siswa = self.combo_siswa.get()
-
-        id_siswa = self.siswa_map.get(
-            nama_siswa
-        )
+        for row in self.table.get_children():
+            self.table.delete(row)
 
         conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT
+                n.id_nilai,
+                s.nama_siswa,
+                n.semester,
+                n.rata_nilai
+            FROM nilai n
+            JOIN siswa s ON n.id_siswa = s.id_siswa
+            ORDER BY s.nama_siswa
+        """)
+        data = cursor.fetchall()
 
-        if conn:
-
-            cursor = conn.cursor()
-
-            query = """
-                INSERT INTO nilai
-                (
-                    id_siswa,
-                    semester,
-                    rata_nilai
-                )
-                VALUES (%s,%s,%s)
-            """
-
-            values = (
-                id_siswa,
-                self.entry_semester.get(),
-                self.entry_nilai.get()
+        for index, row in enumerate(data):
+            if index % 2 == 0:
+                tag = "evenrow"
+            else:
+                tag = "oddrow"
+            self.table.insert(
+                "",
+                "end",
+                values=row,
+                tags=(tag,)
             )
+        conn.close()
 
-            cursor.execute(query, values)
+    # ==================================
+    # TAMBAH
+    # ==================================
 
-            conn.commit()
+    def tambah_data(self):
+        try:
+            if self.combo_siswa.get() == "Pilih Siswa" or not self.combo_siswa.get():
+                messagebox.showwarning("Peringatan", "Silakan pilih siswa terlebih dahulu!")
+                return
 
-            messagebox.showinfo(
-                "Sukses",
-                "Data nilai berhasil ditambahkan"
-            )
-
-            cursor.close()
-            conn.close()
-
-            self.load_data()
-            self.clear_form()
-
-    # =========================
-    # PILIH DATA
-    # =========================
-
-    def pilih_data(self, event):
-
-        selected = self.table.focus()
-
-        data = self.table.item(selected)
-
-        values = data["values"]
-
-        if values:
-
-            self.selected_id = values[0]
-
-            self.combo_siswa.set(values[1])
-
-            self.entry_semester.delete(0, "end")
-            self.entry_semester.insert(0, values[2])
-
-            self.entry_nilai.delete(0, "end")
-            self.entry_nilai.insert(0, values[3])
-
-    # =========================
-    # UPDATE DATA
-    # =========================
-
-    def update_nilai(self):
-
-        if not self.selected_id:
-            return
-
-        nama_siswa = self.combo_siswa.get()
-
-        id_siswa = self.siswa_map.get(
-            nama_siswa
-        )
-
-        conn = connect_db()
-
-        if conn:
-
-            cursor = conn.cursor()
-
-            query = """
-                UPDATE nilai
-                SET
-                    id_siswa=%s,
-                    semester=%s,
-                    rata_nilai=%s
-                WHERE id_nilai=%s
-            """
-
-            values = (
-                id_siswa,
-                self.entry_semester.get(),
-                self.entry_nilai.get(),
-                self.selected_id
-            )
-
-            cursor.execute(query, values)
-
-            conn.commit()
-
-            messagebox.showinfo(
-                "Sukses",
-                "Data nilai berhasil diupdate"
-            )
-
-            cursor.close()
-            conn.close()
-
-            self.load_data()
-            self.clear_form()
-
-    # =========================
-    # HAPUS DATA
-    # =========================
-
-    def hapus_nilai(self):
-
-        if not self.selected_id:
-            return
-
-        jawab = messagebox.askyesno(
-            "Konfirmasi",
-            "Yakin ingin menghapus data nilai?"
-        )
-
-        if jawab:
+            id_siswa = self.data_siswa[self.combo_siswa.get()]
+            rata = float(self.entry_rata.get() or 0)
 
             conn = connect_db()
+            cursor = conn.cursor()
 
-            if conn:
+            cursor.execute("""
+                INSERT INTO nilai(
+                    id_siswa, semester, b_indo, b_jawa, b_inggris,
+                    matematika, ipas, pjok, pendidikan_pancasila,
+                    btq, pai, seni_rupa, seni_musik, rata_nilai
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """, (
+                id_siswa,
+                self.combo_semester.get(),
+                self.entry_b_indo.get() or 0,
+                self.entry_b_jawa.get() or 0,
+                self.entry_b_inggris.get() or 0,
+                self.entry_matematika.get() or 0,
+                self.entry_ipas.get() or 0,
+                self.entry_pjok.get() or 0,
+                self.entry_pancasila.get() or 0,
+                self.entry_btq.get() or 0,
+                self.entry_pai.get() or 0,
+                self.entry_seni_rupa.get() or 0,
+                self.entry_seni_musik.get() or 0,
+                rata
+            ))
 
-                cursor = conn.cursor()
+            conn.commit()
+            conn.close()
 
-                query = """
-                    DELETE FROM nilai
-                    WHERE id_nilai=%s
-                """
+            messagebox.showinfo("Sukses", "Data nilai berhasil ditambahkan!")
+            self.load_data()
+            self.reset_form()
 
-                cursor.execute(
-                    query,
-                    (self.selected_id,)
-                )
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
-                conn.commit()
+    # ==================================
+    # EDIT
+    # ==================================
 
-                messagebox.showinfo(
-                    "Sukses",
-                    "Data nilai berhasil dihapus"
-                )
+    def edit_data(self):
+        if not self.id_nilai:
+            messagebox.showwarning("Peringatan", "Pilih data yang akan diedit!")
+            return
 
-                cursor.close()
-                conn.close()
+        try:
+            id_siswa = self.data_siswa[self.combo_siswa.get()]
+            rata = float(self.entry_rata.get() or 0)
 
-                self.load_data()
-                self.clear_form()
+            conn = connect_db()
+            cursor = conn.cursor()
 
-    # =========================
-    # CLEAR FORM
-    # =========================
+            cursor.execute("""
+                UPDATE nilai SET
+                    id_siswa=?, semester=?, b_indo=?, b_jawa=?,
+                    b_inggris=?, matematika=?, ipas=?, pjok=?,
+                    pendidikan_pancasila=?, btq=?, pai=?,
+                    seni_rupa=?, seni_musik=?, rata_nilai=?
+                WHERE id_nilai=?
+            """, (
+                id_siswa,
+                self.combo_semester.get(),
+                self.entry_b_indo.get() or 0,
+                self.entry_b_jawa.get() or 0,
+                self.entry_b_inggris.get() or 0,
+                self.entry_matematika.get() or 0,
+                self.entry_ipas.get() or 0,
+                self.entry_pjok.get() or 0,
+                self.entry_pancasila.get() or 0,
+                self.entry_btq.get() or 0,
+                self.entry_pai.get() or 0,
+                self.entry_seni_rupa.get() or 0,
+                self.entry_seni_musik.get() or 0,
+                rata,
+                self.id_nilai
+            ))
 
-    def clear_form(self):
+            conn.commit()
+            conn.close()
 
-        self.combo_siswa.set("")
+            messagebox.showinfo("Sukses", "Data berhasil diupdate!")
+            self.load_data()
+            self.reset_form()
 
-        self.entry_semester.delete(0, "end")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
-        self.entry_nilai.delete(0, "end")
+    # ==================================
+    # HAPUS
+    # ==================================
 
-        self.selected_id = None
+    def hapus_data(self):
+        if not self.id_nilai:
+            messagebox.showwarning("Peringatan", "Pilih data yang akan dihapus!")
+            return
 
+        if messagebox.askyesno("Konfirmasi", "Yakin ingin menghapus data ini?"):
+            conn = connect_db()
+            cursor = conn.cursor()
+            cursor.execute(
+                "DELETE FROM nilai WHERE id_nilai=?",
+                (self.id_nilai,)
+            )
+            conn.commit()
+            conn.close()
+            self.load_data()
+            self.reset_form()
 
-# =========================
-# MAIN
-# =========================
+    # ==================================
+    # PILIH DATA
+    # ==================================
 
-if __name__ == "__main__":
-    app = NilaiPage()
-    app.mainloop()
+    def pilih_data(self, event):
+        selected = self.table.focus()
+        data = self.table.item(selected, "values")
+        if not data:
+            return
+
+        self.id_nilai = data[0]
+
+        conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT
+                semester, b_indo, b_jawa, b_inggris,
+                matematika, ipas, pjok, pendidikan_pancasila,
+                btq, pai, seni_rupa, seni_musik, rata_nilai
+            FROM nilai
+            WHERE id_nilai=?
+        """, (self.id_nilai,))
+        detail = cursor.fetchone()
+        conn.close()
+
+        if detail:
+            self.combo_siswa.set(data[1])
+            self.combo_semester.set(detail[0])
+
+            entries = [
+                self.entry_b_indo, self.entry_b_jawa, self.entry_b_inggris,
+                self.entry_matematika, self.entry_ipas, self.entry_pjok,
+                self.entry_pancasila, self.entry_btq, self.entry_pai,
+                self.entry_seni_rupa, self.entry_seni_musik
+            ]
+
+            for i, entry in enumerate(entries):
+                entry.delete(0, "end")
+                entry.insert(0, detail[i+1] or 0)
+
+            self.entry_rata.configure(state="normal")
+            self.entry_rata.delete(0, "end")
+            self.entry_rata.insert(0, detail[12])
+            self.entry_rata.configure(state="readonly")
+
+    # ==================================
+    # CARI
+    # ==================================
+
+    def cari_data(self):
+        keyword = self.entry_search.get().strip()
+
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT
+                n.id_nilai,
+                s.nama_siswa,
+                n.semester,
+                n.rata_nilai
+            FROM nilai n
+            JOIN siswa s ON n.id_siswa = s.id_siswa
+            WHERE s.nama_siswa LIKE ?
+            ORDER BY s.nama_siswa
+        """, (f"%{keyword}%",))
+        data = cursor.fetchall()
+        conn.close()
+
+        for index, row in enumerate(data):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
+            self.table.insert("", "end", values=row, tags=(tag,))
+
+    # ==================================
+    # RESET
+    # ==================================
+
+    def reset_form(self):
+        self.id_nilai = None
+        self.combo_siswa.set("Pilih Siswa")
+        self.combo_semester.set("Ganjil")
+
+        entries = [
+            self.entry_b_indo, self.entry_b_jawa, self.entry_b_inggris,
+            self.entry_matematika, self.entry_ipas, self.entry_pjok,
+            self.entry_pancasila, self.entry_btq, self.entry_pai,
+            self.entry_seni_rupa, self.entry_seni_musik
+        ]
+
+        for entry in entries:
+            entry.delete(0, "end")
+
+        self.entry_rata.configure(state="normal")
+        self.entry_rata.delete(0, "end")
+        self.entry_rata.configure(state="readonly")

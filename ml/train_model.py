@@ -86,6 +86,8 @@ X = df[
     [
         "rata_nilai",
         "hadir",
+        "sakit",
+        "izin",
         "alpha",
         "skor_motivasi",
         "skor_disiplin"

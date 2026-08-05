@@ -1,0 +1,65 @@
+===========================================
+📊 PANDUAN BACKUP & RESTORE DATABASE
+Sistem Prediksi Prestasi Siswa - SDN Klegen
+===========================================
+
+📌 APA ITU DATABASE?
+Database adalah tempat penyimpanan SEMUA data:
+- Data Siswa
+- Data Nilai
+- Data Kehadiran
+- Data Motivasi
+- Data Disiplin
+- Data Hasil Prediksi
+
+===========================================
+💾 CARA BACKUP (Menyimpan Data)
+===========================================
+
+Langkah 1: Buka folder aplikasi
+Langkah 2: Cari folder "data"
+Langkah 3: Copy file "prediksi_siswa.db"
+Langkah 4: Paste ke tempat aman (USB, Google Drive, Email)
+
+✅ Selesai! Data sudah tersimpan.
+
+===========================================
+📂 CARA RESTORE (Memulihkan Data)
+===========================================
+
+Langkah 1: Copy file "prediksi_siswa.db" dari backup
+Langkah 2: Buka folder aplikasi
+Langkah 3: Buka folder "data"
+Langkah 4: Paste dan timpa file yang lama
+
+✅ Selesai! Data sudah dipulihkan.
+
+===========================================
+⚠️ PENTING!
+===========================================
+
+1. Backup secara rutin (minimal 1 minggu sekali)
+2. Simpan backup di 2 tempat berbeda
+   (misal: USB + Google Drive)
+3. Jangan hapus file prediksi_siswa.db
+4. Jangan hapus folder data/
+
+===========================================
+📌 FREKUENSI BACKUP
+===========================================
+
+✅ Setelah selesai input data
+✅ Setiap hari Jumat
+✅ Sebelum update aplikasi
+
+===========================================
+❓ PERTANYAAN?
+===========================================
+
+Hubungi: Yakiya Ratna Sari
+WA: 083825349154
+Email: ratnasariyakia@gmail.com
+
+===========================================
+© 2024 SDN Klegen
+===========================================

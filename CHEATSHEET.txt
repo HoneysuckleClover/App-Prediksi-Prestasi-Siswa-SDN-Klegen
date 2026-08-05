@@ -1,0 +1,37 @@
+==============================
+📊 DATABASE CHEATSHEET
+Sistem Prediksi Prestasi Siswa
+==============================
+
+📁 FILE DATABASE:
+data/prediksi_siswa.db
+
+💾 BACKUP:
+1. Copy prediksi_siswa.db
+2. Simpan di USB / Google Drive
+
+🔄 RESTORE:
+1. Copy prediksi_siswa.db dari backup
+2. Timpa di folder data
+
+⏰ KAPAN BACKUP?
+✅ Setiap hari setelah input data
+✅ Setiap hari Jumat
+✅ Sebelum update aplikasi
+
+📌 DIMANA SIMPAN?
+✅ USB Flashdisk
+✅ Google Drive
+✅ Email
+✅ Komputer lain
+
+⚠️ JANGAN DIHAPUS!
+File .db = SEMUA DATA SISWA
+
+🔧 JIKA RUSAK:
+1. Hapus prediksi_siswa.db
+2. Restart aplikasi (auto-create baru)
+
+==============================
+© 2024 SDN Klegen
+==============================

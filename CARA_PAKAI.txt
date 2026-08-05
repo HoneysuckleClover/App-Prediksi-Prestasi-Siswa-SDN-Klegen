@@ -1,0 +1,84 @@
+===========================================
+📚 CARA MENGGUNAKAN APLIKASI
+Sistem Prediksi Prestasi Siswa - SDN Klegen
+===========================================
+
+===========================================
+🚀 MEMULAI APLIKASI
+===========================================
+
+1. Buka folder SistemPrediksiSiswa
+2. Double-click file SistemPrediksiSiswa.exe
+3. Tunggu hingga aplikasi terbuka
+
+===========================================
+🔑 LOGIN
+===========================================
+
+Username: admin
+Password: admin123
+
+Username: guru
+Password: guru123
+
+Username: kepsek
+Password: kepsek123
+
+===========================================
+📌 MENU & FUNGSI
+===========================================
+
+👨‍💼 ADMIN PANEL
+├── Dashboard Utama       → Lihat statistik
+├── Data Siswa            → Kelola data siswa
+├── Data Kelas            → Kelola data kelas
+├── Kelola Akun User      → Kelola akun pengguna
+└── Hasil Prediksi        → Lihat hasil prediksi
+
+👩‍🏫 GURU PANEL
+├── Dashboard Utama       → Lihat statistik
+├── Data Nilai            → Input/edit nilai siswa
+├── Data Kehadiran        → Input/edit kehadiran
+├── Data Motivasi         → Input/edit motivasi
+├── Data Disiplin         → Input/edit disiplin
+├── Prediksi Prestasi     → Lakukan prediksi
+└── Hasil Prediksi        → Lihat hasil prediksi
+
+👨‍💼 KEPALA SEKOLAH PANEL
+├── Dashboard             → Lihat statistik
+├── Laporan Prediksi      → Lihat semua prediksi
+└── Download PDF          → Download laporan PDF
+
+⚠️ JANGAN HAPUS FOLDER:
+- assets/   (logo)
+- models/   (model prediksi)
+- data/     (database)
+
+===========================================
+❓ TROUBLESHOOTING
+===========================================
+
+1. Aplikasi tidak mau jalan?
+   ✅ Jalankan sebagai Administrator
+   ✅ Pastikan folder assets/ ada
+
+2. Login gagal?
+   ✅ Username: admin
+   ✅ Password: admin123
+
+
+3. Data tidak muncul?
+   ✅ Buka halaman Dashboard
+   ✅ Klik Refresh
+
+===========================================
+📞 BANTUAN
+===========================================
+
+Hubungi: Yakiya Ratna Sari
+WA: 083825349154
+Email: ratnasariyakia@gmail.com
+
+===========================================
+© 2024 SDN Klegen - v1.0
+===========================================

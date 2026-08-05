@@ -1,0 +1,41 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Build / distribution
+build/
+dist/
+*.spec
+
+# Database files
+*.db
+*.sqlite3
+*.sqlite
+
+# Trained model files (large binary) - keep the one in models/
+*.pkl
+!models/model_logistic.pkl
+/model_logistic.pkl
+
+# Generated results / artifacts
+hasil/
+
+# Backup folders
+pages_backup/
+
+# IDE / OS files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
