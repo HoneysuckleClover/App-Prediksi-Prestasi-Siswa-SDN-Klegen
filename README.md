@@ -49,7 +49,20 @@ Aplikasi berbasis Python untuk membantu **memprediksi prestasi siswa** (berdasar
 ```bash
 python main.py
 ```
+## Membuat File .exe
 
+1. Install PyInstaller:
+   
+   - pip install pyinstaller
+     
+2. Build aplikasi menjadi file .exe:
+
+   - pyinstaller --onefile --windowed main.py
+
+3. Hasil build akan berada di folder:
+
+   - dist/
+     
 ## Melatih Ulang Model (Jika Diperlukan)
 
 Jika ingin melatih model ulang menggunakan dataset:
