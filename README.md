@@ -53,11 +53,15 @@ python main.py
 
 1. Install PyInstaller:
    
-   - pip install pyinstaller
+    ```bash
+   pip install pyinstaller
+    ```
      
 2. Build aplikasi menjadi file .exe:
 
-   - pyinstaller --onefile --windowed main.py
+   ```bash
+   pyinstaller --onefile --windowed main.py
+   ```
 
 3. Hasil build akan berada di folder:
 
